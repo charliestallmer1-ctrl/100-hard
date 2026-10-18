@@ -191,8 +191,7 @@
   'use strict';
 
   // ---------- Config ----------
-  var START = new Date(2026, 9, 18);   // Oct 18, 2026 = Day 1, countdown 100
-  var END   = new Date(2027, 0, 26);   // Jan 26, 2027 = countdown 0
+  var END   = new Date(2027, 0, 26);   // Jan 26, 2027 = countdown 0 (100 on Oct 18, 2026)
   var TOTAL = 100;
   var START_WEIGHT = 226;
   var BEERS_PER_WEEK = 10;
@@ -245,19 +244,12 @@
   var $ = function (id) { return document.getElementById(id); };
 
   // ---------- Header ----------
+  // Countdown: 100 on Oct 18 2026, minus one per day, 0 on Jan 26 2027.
+  // "Day 1" underneath is a fixed mantra, not a counter.
   function renderHeader(today) {
     var left = daysBetween(today, END);
-    var countdown = Math.max(0, Math.min(TOTAL, left));
-    $('count').textContent = countdown;
-    var dayEl = $('day');
-    if (today < START) {
-      var until = daysBetween(today, START);
-      dayEl.textContent = 'Starts in ' + until + (until === 1 ? ' day' : ' days');
-    } else if (left <= 0) {
-      dayEl.textContent = 'Mission complete';
-    } else {
-      dayEl.textContent = 'Day ' + (TOTAL + 1 - countdown);
-    }
+    $('count').textContent = Math.max(0, Math.min(TOTAL, left));
+    $('day').textContent = 'Day 1';
   }
 
   // ---------- Today ----------
