@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>100 Hard</title>
+<meta name="description" content="100-day discipline tracker.">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="100 Hard">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" href="./icon-192.png">
+<style>
+  :root {
+    --bg: #000000;
+    --fg: #FFFFFF;
+    --muted: #8E8E93;
+    --dim: #48484A;
+    --line: #1C1C1E;
+    --green: #30D158;
+    --red: #FF453A;
+    --tap: #0A0A0A;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -webkit-user-select: none; user-select: none;
+    padding: calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 48px);
+    max-width: 520px; margin: 0 auto;
+    overscroll-behavior-y: none;
+  }
+
+  /* ---------- Header ---------- */
+  header { text-align: center; padding: 16px 0 28px; }
+  .count {
+    font-size: 148px; font-weight: 800; line-height: 1; letter-spacing: -6px;
+    font-variant-numeric: tabular-nums;
+  }
+  .target { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .motto { font-weight: 800; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; margin-top: 18px; }
+  .day { color: var(--green); font-weight: 700; font-size: 18px; margin-top: 6px; }
+
+  /* ---------- Sections ---------- */
+  section { border-top: 1px solid var(--line); padding: 20px 0 8px; }
+  .label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .label small { font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 12px; }
+
+  /* ---------- Checklist ---------- */
+  .banner {
+    display: none; background: var(--green); color: #000;
+    font-weight: 800; text-align: center; border-radius: 12px; padding: 14px; margin-bottom: 12px;
+    letter-spacing: .5px;
+  }
+  .banner.show { display: block; }
+  .task {
+    display: flex; align-items: center; gap: 14px;
+    min-height: 54px; padding: 8px 0; border-bottom: 1px solid var(--line); cursor: pointer;
+  }
+  .task:last-child { border-bottom: 0; }
+  .task:active { background: var(--tap); }
+  .box {
+    flex: none; width: 26px; height: 26px; border-radius: 50%;
+    border: 2px solid var(--dim); display: grid; place-items: center;
+    transition: background .15s, border-color .15s;
+  }
+  .box svg { width: 14px; height: 14px; opacity: 0; }
+  .task.done .box { background: var(--green); border-color: var(--green); }
+  .task.done .box svg { opacity: 1; }
+  .task .text { font-size: 17px; font-weight: 500; line-height: 1.25; }
+  .task .sub { color: var(--muted); font-size: 13px; margin-top: 2px; line-height: 1.3; }
+  .task.done .text { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--dim); }
+
+  /* ---------- Week ---------- */
+  .row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .row .name { font-size: 17px; font-weight: 500; }
+  .row .hint { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .ctl { display: flex; align-items: center; gap: 14px; }
+  .big { font-size: 34px; font-weight: 800; min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
+  .big.zero { color: var(--red); }
+  .big.good { color: var(--green); }
+  button {
+    font: inherit; color: var(--fg); background: var(--line); border: 0; border-radius: 50%;
+    width: 44px; height: 44px; font-size: 26px; font-weight: 600; line-height: 1;
+    display: grid; place-items: center; cursor: pointer;
+  }
+  button:active { background: #2C2C2E; }
+  button.ghost { background: transparent; color: var(--muted); width: 36px; height: 36px; font-size: 20px; }
+  button:disabled { opacity: .3; }
+  .bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin: 4px 0 12px; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--green); border-radius: 3px; transition: width .25s; }
+
+  /* ---------- Weight ---------- */
+  .weight { display: flex; align-items: baseline; gap: 12px; padding: 6px 0 12px; }
+  .weight .now { font-size: 40px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .weight .unit { color: var(--muted); font-size: 16px; font-weight: 600; }
+  .weight .lost { color: var(--green); font-weight: 700; font-size: 16px; margin-left: auto; }
+  .weight .lost.up { color: var(--red); }
+  .wform { display: flex; gap: 10px; padding-bottom: 8px; }
+  input[type=number] {
+    flex: 1; font: inherit; font-size: 17px; color: var(--fg); background: var(--line);
+    border: 0; border-radius: 12px; padding: 12px 14px; min-width: 0; -moz-appearance: textfield;
+  }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input:focus { outline: 2px solid var(--green); }
+  .log { border-radius: 12px; width: auto; height: auto; padding: 0 18px; font-size: 16px; font-weight: 700; background: var(--green); color: #000; }
+  .wnote { color: var(--muted); font-size: 13px; padding-bottom: 8px; }
+
+  /* ---------- Goals ---------- */
+  .goal { display: flex; gap: 12px; padding: 10px 0; font-size: 17px; font-weight: 500; border-bottom: 1px solid var(--line); }
+  .goal:last-child { border-bottom: 0; }
+  .goal b { color: var(--green); }
+
+  footer { text-align: center; color: var(--dim); font-size: 12px; padding-top: 28px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="count" id="count">100</div>
+  <div class="target">January 26, 2027</div>
+  <div class="motto">Mission Over Bullshit</div>
+  <div class="day" id="day">Day 1</div>
+</header>
+
+<section>
+  <div class="label"><span>Today</span><small id="todayDate"></small></div>
+  <div class="banner" id="banner">DAY COMPLETE</div>
+  <div id="tasks"></div>
+</section>
+
+<section>
+  <div class="label"><span>This Week</span><small id="weekRange"></small></div>
+  <div class="row">
+    <div>
+      <div class="name">Beers left</div>
+      <div class="hint">10 per week · resets Monday</div>
+    </div>
+    <div class="ctl">
+      <button class="ghost" id="beerUndo" title="Undo">+</button>
+      <div class="big" id="beers">10</div>
+      <button id="beerMinus" title="Log a beer">−</button>
+    </div>
+  </div>
+  <div class="row">
+    <div>
+      <div class="name">Outreach</div>
+      <div class="hint">Goal: 3 to 5 people</div>
+    </div>
+    <div class="ctl">
+      <button class="ghost" id="outMinus">−</button>
+      <div class="big" id="outreach">0</div>
+      <button id="outPlus">+</button>
+    </div>
+  </div>
+  <div class="bar"><i id="outBar"></i></div>
+</section>
+
+<section>
+  <div class="label"><span>Weight</span><small>Start 226 lbs</small></div>
+  <div class="weight">
+    <div class="now" id="wNow">226</div>
+    <div class="unit">lbs</div>
+    <div class="lost" id="wLost">0 lbs lost</div>
+  </div>
+  <form class="wform" id="wForm">
+    <input type="number" inputmode="decimal" step="0.1" min="50" max="500" placeholder="Today's weight" id="wInput">
+    <button type="submit" class="log">Log</button>
+  </form>
+  <div class="wnote" id="wNote"></div>
+</section>
+
+<section>
+  <div class="label"><span>Goals</span></div>
+  <div id="goals"></div>
+</section>
+
+<footer id="hist"></footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- Config ----------
+  var START = new Date(2026, 9, 18);   // Oct 18, 2026 = Day 1, countdown 100
+  var END   = new Date(2027, 0, 26);   // Jan 26, 2027 = countdown 0
+  var TOTAL = 100;
+  var START_WEIGHT = 226;
+  var BEERS_PER_WEEK = 10;
+  var OUTREACH_MAX = 5;
+
+  var TASKS = [
+    ['Up at 6 a.m.'],
+    ['Make bed'],
+    ['Morning progress picture'],
+    ['Pray', 'Rosary / confession'],
+    ['Plan the day'],
+    ['Workout 1'],
+    ['Workout 2'],
+    ['Strict diet', 'No sugary drinks, desserts, junk food, white bread, white pasta, fast food. Healthy snacks in moderation.'],
+    ['Academic work'],
+    ['Screen time under 2 hours'],
+    ['Night progress picture'],
+    ['In bed by 9:30 p.m.']
+  ];
+
+  var GOALS = [
+    '4.0 GPA',
+    'No grade under 93%',
+    'Grow closer to God',
+    'Lose weight and get fit',
+    'Progress toward a job and law school'
+  ];
+
+  // ---------- Storage ----------
+  var store = {
+    get: function (k, def) {
+      try { var v = localStorage.getItem('hh:' + k); return v == null ? def : JSON.parse(v); }
+      catch (e) { return def; }
+    },
+    set: function (k, v) {
+      try { localStorage.setItem('hh:' + k, JSON.stringify(v)); } catch (e) {}
+    }
+  };
+
+  // ---------- Dates (all local) ----------
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function todayLocal() { var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function key(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
+  function mondayOf(d) { var m = new Date(d); m.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return m; }
+  function fmt(d) { return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); }
+
+  var CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="#000" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 4.5"/></svg>';
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---------- Header ----------
+  function renderHeader(today) {
+    var left = daysBetween(today, END);
+    var countdown = Math.max(0, Math.min(TOTAL, left));
+    $('count').textContent = countdown;
+    var dayEl = $('day');
+    if (today < START) {
+      var until = daysBetween(today, START);
+      dayEl.textContent = 'Starts in ' + until + (until === 1 ? ' day' : ' days');
+    } else if (left <= 0) {
+      dayEl.textContent = 'Mission complete';
+    } else {
+      dayEl.textContent = 'Day ' + (TOTAL + 1 - countdown);
+    }
+  }
+
+  // ---------- Today ----------
+  function getToday(today) {
+    var k = key(today);
+    var t = store.get('today', null);
+    if (!t || t.date !== k) {
+      t = { date: k, checks: TASKS.map(function () { return false; }) };
+      store.set('today', t);
+    }
+    return t;
+  }
+
+  function renderToday(today) {
+    var t = getToday(today);
+    $('todayDate').textContent = today.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    var wrap = $('tasks');
+    wrap.innerHTML = '';
+    TASKS.forEach(function (task, i) {
+      var row = document.createElement('div');
+      row.className = 'task' + (t.checks[i] ? ' done' : '');
+      row.innerHTML = '<div class="box">' + CHECK + '</div><div><div class="text">' + task[0] + '</div>' +
+        (task[1] ? '<div class="sub">' + task[1] + '</div>' : '') + '</div>';
+      row.addEventListener('click', function () {
+        var cur = getToday(todayLocal());
+        cur.checks[i] = !cur.checks[i];
+        store.set('today', cur);
+        refresh();
+      });
+      wrap.appendChild(row);
+    });
+
+    var all = t.checks.every(Boolean);
+    $('banner').classList.toggle('show', all);
+
+    var hist = store.get('history', {});
+    if (all) { if (!hist[t.date]) { hist[t.date] = true; store.set('history', hist); } }
+    else if (hist[t.date]) { delete hist[t.date]; store.set('history', hist); }
+    var n = Object.keys(hist).length;
+    $('hist').textContent = n + (n === 1 ? ' day' : ' days') + ' completed';
+  }
+
+  // ---------- Week ----------
+  function getWeek(today) {
+    var k = key(mondayOf(today));
+    var w = store.get('week', null);
+    if (!w || w.week !== k) {
+      w = { week: k, beers: BEERS_PER_WEEK, outreach: 0 };
+      store.set('week', w);
+    }
+    return w;
+  }
+
+  function renderWeek(today) {
+    var w = getWeek(today);
+    var mon = mondayOf(today), sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    $('weekRange').textContent = fmt(mon) + ' – ' + fmt(sun);
+
+    var b = $('beers');
+    b.textContent = w.beers;
+    b.classList.toggle('zero', w.beers <= 0);
+    $('beerMinus').disabled = w.beers <= 0;
+    $('beerUndo').disabled = w.beers >= BEERS_PER_WEEK;
+
+    var o = $('outreach');
+    o.textContent = w.outreach;
+    o.classList.toggle('good', w.outreach >= 3);
+    $('outBar').style.width = (w.outreach / OUTREACH_MAX * 100) + '%';
+    $('outPlus').disabled = w.outreach >= OUTREACH_MAX;
+    $('outMinus').disabled = w.outreach <= 0;
+  }
+
+  function bumpWeek(field, delta, min, max) {
+    var w = getWeek(todayLocal());
+    w[field] = Math.max(min, Math.min(max, w[field] + delta));
+    store.set('week', w);
+    refresh();
+  }
+  $('beerMinus').addEventListener('click', function () { bumpWeek('beers', -1, 0, BEERS_PER_WEEK); });
+  $('beerUndo').addEventListener('click', function () { bumpWeek('beers', +1, 0, BEERS_PER_WEEK); });
+  $('outPlus').addEventListener('click', function () { bumpWeek('outreach', +1, 0, OUTREACH_MAX); });
+  $('outMinus').addEventListener('click', function () { bumpWeek('outreach', -1, 0, OUTREACH_MAX); });
+
+  // ---------- Weight ----------
+  function renderWeight(today) {
+    var weights = store.get('weights', {});
+    var dates = Object.keys(weights).sort();
+    var latestKey = dates[dates.length - 1];
+    var latest = latestKey ? weights[latestKey] : START_WEIGHT;
+    var lost = Math.round((START_WEIGHT - latest) * 10) / 10;
+
+    $('wNow').textContent = latest;
+    var lostEl = $('wLost');
+    if (lost >= 0) { lostEl.textContent = lost + ' lbs lost'; lostEl.classList.remove('up'); }
+    else { lostEl.textContent = (-lost) + ' lbs gained'; lostEl.classList.add('up'); }
+
+    var note = $('wNote');
+    if (!latestKey) note.textContent = 'No weigh-ins yet.';
+    else if (latestKey === key(today)) note.textContent = 'Logged today · ' + dates.length + (dates.length === 1 ? ' weigh-in' : ' weigh-ins');
+    else note.textContent = 'Last logged ' + latestKey + ' · tap Log to update today';
+  }
+
+  $('wForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = parseFloat($('wInput').value);
+    if (!isFinite(v) || v < 50 || v > 500) return;
+    var weights = store.get('weights', {});
+    weights[key(todayLocal())] = Math.round(v * 10) / 10;
+    store.set('weights', weights);
+    $('wInput').value = '';
+    $('wInput').blur();
+    refresh();
+  });
+
+  // ---------- Goals ----------
+  function renderGoals() {
+    $('goals').innerHTML = GOALS.map(function (g, i) {
+      return '<div class="goal"><b>' + (i + 1) + '</b><span>' + g + '</span></div>';
+    }).join('');
+  }
+
+  // ---------- Refresh / midnight rollover ----------
+  var lastKey = null;
+  function refresh() {
+    var today = todayLocal();
+    lastKey = key(today);
+    renderHeader(today);
+    renderToday(today);
+    renderWeek(today);
+    renderWeight(today);
+  }
+
+  function tick() { if (key(todayLocal()) !== lastKey) refresh(); }
+  setInterval(tick, 30000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) tick(); });
+  window.addEventListener('pageshow', tick);
+
+  renderGoals();
+  refresh();
+
+  // ---------- Offline ----------
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./sw.js').catch(function () {});
+    });
+  }
+})();
+</script>
+</body>
+</html>
